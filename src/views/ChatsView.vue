@@ -14,6 +14,7 @@ const replyingTo = ref<Message | null>(null)
 const editingMessage = ref<Message | null>(null)
 const showChatOptions = ref(false)
 const fileInputRef = ref<HTMLInputElement | null>(null)
+const showMobileConversation = ref(false)
 
 const emojis = ['😊', '😂', '❤️', '👍', '🎉', '🔥', '😍', '🤔', '😎', '💯', '🙌', '✨']
 
@@ -90,9 +91,14 @@ const scrollToBottom = () => {
 
 const selectChat = (chatId: string) => {
   chatStore.setActiveChat(chatId)
+  showMobileConversation.value = true
   nextTick(() => {
     scrollToBottom()
   })
+}
+
+const backToChats = () => {
+  showMobileConversation.value = false
 }
 
 const addEmoji = (emoji: string) => {
@@ -176,7 +182,7 @@ const getChatStatus = (chat: any) => {
 
 <template>
   <div class="chats-view">
-    <div class="chat-list-panel">
+    <div class="chat-list-panel" :class="{ 'hide-on-mobile': showMobileConversation }">
       <div class="chat-list-header">
         <h2 class="chat-list-title">Messages</h2>
       </div>
@@ -230,7 +236,7 @@ const getChatStatus = (chat: any) => {
       </div>
     </div>
 
-    <div class="chat-conversation-panel">
+    <div class="chat-conversation-panel" :class="{ 'show-on-mobile': showMobileConversation }">
       <div v-if="!chatStore.activeChat" class="empty-state">
         <div class="empty-icon">💭</div>
         <h3>Select a chat to start messaging</h3>
@@ -239,6 +245,9 @@ const getChatStatus = (chat: any) => {
 
       <template v-else>
         <div class="chat-header">
+          <button class="back-button show-mobile" @click="backToChats">
+            ← Back
+          </button>
           <div class="chat-header-info">
             <img
               :src="getChatAvatar(chatStore.activeChatData)"
@@ -431,6 +440,10 @@ const getChatStatus = (chat: any) => {
 .chat-avatar-container {
   position: relative;
   flex-shrink: 0;
+}
+
+.back-button {
+  display: none;
 }
 
 .chat-avatar-container .status-indicator {
@@ -798,11 +811,43 @@ const getChatStatus = (chat: any) => {
 @media (max-width: 768px) {
   .chat-list-panel {
     width: 100%;
-    display: var(--show-chat-list, flex);
+  }
+
+  .chat-list-panel.hide-on-mobile {
+    display: none;
   }
 
   .chat-conversation-panel {
-    display: var(--show-conversation, none);
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 60px;
+    z-index: 10;
+  }
+
+  .chat-conversation-panel.show-on-mobile {
+    display: flex;
+  }
+
+  .back-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-radius: 0.5rem;
+  }
+
+  .back-button:hover {
+    background-color: var(--bg-hover);
   }
 
   .message-content {
